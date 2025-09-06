@@ -2,6 +2,7 @@
 
 import {Component, ElementRef, inject, OnInit, signal, viewChild} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
+import CredentialResponse = google.accounts.id.CredentialResponse;
 
 interface IResponse {
   access_token: string;
@@ -19,7 +20,7 @@ export class App implements OnInit {
 
   private readonly html = viewChild<ElementRef<HTMLElement>>('google');
   private readonly http = inject(HttpClient);
-  protected readonly nonce = signal<string | undefined>('');
+  private readonly nonce = signal<string | undefined>('');
 
   ngOnInit() {
     this.http.get('http://localhost:9090/v1/oidc/nonce').subscribe({
@@ -44,7 +45,16 @@ export class App implements OnInit {
       context: "signin",
       itp_support: false,
       login_uri: 'https://assa-front.dicortex.com',
-      callback: this.handleCredentialResponse
+      callback: ({credential}: CredentialResponse) => {
+        this.http.post<IResponse>('http://localhost:9090/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
+          next: data => {
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('token_type', 'Bearer');
+            localStorage.setItem('expries_in', data.access_token);
+            localStorage.setItem('nonce', data.nonce);
+          }
+        });
+      }
     });
 
     const host = this.html()?.nativeElement;
@@ -54,19 +64,6 @@ export class App implements OnInit {
       });
     }
     google.accounts.id.disableAutoSelect();
-  }
-
-  private handleCredentialResponse({credential}: google.accounts.id.CredentialResponse): void {
-    console.log('Encoded JWT ID token: ' + credential );
-
-    this.http.post<IResponse>('http://localhost:9090/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
-      next: data => {
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('token_type', 'Bearer');
-        localStorage.setItem('expries_in', data.access_token);
-        localStorage.setItem('nonce', data.nonce);
-      }
-    });
   }
 
 }
