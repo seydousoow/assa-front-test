@@ -1,6 +1,6 @@
 /// <reference types="google.accounts" />
 
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, signal, viewChild} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 
 @Component({
@@ -11,9 +11,19 @@ import {HttpClient} from "@angular/common/http";
 })
 export class App implements OnInit {
 
-  readonly nonce = signal('');
-  readonly clientId: Readonly<string> = "378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com";
+  private readonly html = viewChild<ElementRef<HTMLElement>>('google');
   private readonly http = inject(HttpClient);
+  protected readonly nonce = signal<string | undefined>('');
+
+  ngOnInit() {
+    this.http.get('http://localhost:9090/v1/oidc/nonce').subscribe({
+      next: data => {
+        this.nonce.set(String(data));
+        this.initGoogleOauth(String(data));
+      },
+      error: error => console.error('There was an error!', error)
+    });
+  }
 
   // requestTokenAccess(): void {
   //   const client = google.accounts.oauth2.initTokenClient({
@@ -30,22 +40,35 @@ export class App implements OnInit {
   //   client.requestAccessToken();
   // }
 
-  ngOnInit() {
-    this.http.get('http://localhost:9090/v1/oidc/nonce').subscribe({
-      next: data => this.nonce.set(String(data)),
-      error: error => console.error('There was an error!', error)
-    });
-  }
-
   logout() {
     google.accounts.id.revoke("revoke", s => console.log(s));
   }
 
-  // noinspection JSUnusedLocalSymbols
+  private initGoogleOauth(nonce: string): void {
+    google.accounts.id.initialize({
+      client_id: '378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com',
+      ux_mode: 'popup',
+      nonce,
+      context: "signin",
+      itp_support: false,
+      login_uri: 'https://assa-front.dicortex.com',
+      auto_select: true,
+      callback: this.handleCredentialResponse
+    });
+
+    const host = this.html()?.nativeElement;
+    if (host) {
+      google.accounts.id.renderButton(<HTMLDivElement>host, {
+        theme: 'outline', size: 'large', shape: 'square', locale: 'fr', type: 'icon', width: 48
+      });
+    }
+    google.accounts.id.prompt()
+  }
+
   private handleCredentialResponse({credential, select_by}: google.accounts.id.CredentialResponse): void {
     console.log('Encoded JWT ID token: ' + credential + ' Select by: ' + select_by);
     // Optionally store the credential in the browser for future use
-    google.accounts.id.storeCredential({id: credential, password: ''} as google.accounts.id.Credential);
+    google.accounts.id.storeCredential({id: credential, password: ''});
 
   }
 
