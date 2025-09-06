@@ -5,8 +5,8 @@ import {HttpClient} from "@angular/common/http";
 import CredentialResponse = google.accounts.id.CredentialResponse;
 
 interface IResponse {
-  access_token: string;
-  expires_in: number;
+  accessToken: string;
+  expiresIn: number;
   nonce: string;
 }
 
@@ -33,7 +33,8 @@ export class App implements OnInit {
   }
 
   logout() {
-    google.accounts.id.revoke("revoke", s => console.log(s));
+    this.http.post<void>('http://localhost:9090/v1/auth/logout', {nonce: localStorage.getItem('nonce') ?? ''}).subscribe();
+    ['access_token', 'token_type', 'expires_in', 'nonce'].forEach.call(localStorage, key => localStorage.removeItem(key));
   }
 
   private initGoogleOauth(nonce: string): void {
@@ -48,9 +49,9 @@ export class App implements OnInit {
       callback: ({credential}: CredentialResponse) => {
         this.http.post<IResponse>('http://localhost:9090/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
           next: data => {
-            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('access_token', data.accessToken);
             localStorage.setItem('token_type', 'Bearer');
-            localStorage.setItem('expries_in', data.access_token);
+            localStorage.setItem('expires_in', String(data.expiresIn));
             localStorage.setItem('nonce', data.nonce);
           }
         });
