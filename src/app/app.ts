@@ -59,7 +59,7 @@ export class App implements OnInit {
   private handleCredentialResponse({credential}: google.accounts.id.CredentialResponse): void {
     console.log('Encoded JWT ID token: ' + credential );
 
-    this.http.post<IResponse>('http://localhost:9090/v1/oidc/nonce', {credential, nonce: this.nonce()}).subscribe({
+    this.http.post<IResponse>('http://localhost:9090/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
       next: data => {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('token_type', 'Bearer');
