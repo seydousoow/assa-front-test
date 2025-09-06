@@ -3,6 +3,12 @@
 import {Component, ElementRef, inject, OnInit, signal, viewChild} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 
+interface IResponse {
+  access_token: string;
+  expires_in: number;
+  nonce: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [],
@@ -25,34 +31,19 @@ export class App implements OnInit {
     });
   }
 
-  // requestTokenAccess(): void {
-  //   const client = google.accounts.oauth2.initTokenClient({
-  //     client_id: '378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com',
-  //     scope: 'profile email openid',
-  //     state: this.nonce(),
-  //     callback: (response: google.accounts.oauth2.TokenResponse) => {
-  //       console.log(response);
-  //     },
-  //     error_callback: (error: any) => {
-  //       console.error('Token Error: ', error);
-  //     }
-  //   } as google.accounts.oauth2.TokenClientConfig);
-  //   client.requestAccessToken();
-  // }
-
   logout() {
     google.accounts.id.revoke("revoke", s => console.log(s));
   }
 
   private initGoogleOauth(nonce: string): void {
     google.accounts.id.initialize({
-      client_id: '378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com',
+      client_id: '378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com', // to be externalized
+      auto_select: false,
       ux_mode: 'popup',
       nonce,
       context: "signin",
       itp_support: false,
       login_uri: 'https://assa-front.dicortex.com',
-      auto_select: true,
       callback: this.handleCredentialResponse
     });
 
@@ -62,14 +53,20 @@ export class App implements OnInit {
         theme: 'outline', size: 'large', shape: 'square', locale: 'fr', type: 'icon', width: 48
       });
     }
-    google.accounts.id.prompt()
+    google.accounts.id.disableAutoSelect();
   }
 
-  private handleCredentialResponse({credential, select_by}: google.accounts.id.CredentialResponse): void {
-    console.log('Encoded JWT ID token: ' + credential + ' Select by: ' + select_by);
-    // Optionally store the credential in the browser for future use
-    google.accounts.id.storeCredential({id: credential, password: ''});
+  private handleCredentialResponse({credential}: google.accounts.id.CredentialResponse): void {
+    console.log('Encoded JWT ID token: ' + credential );
 
+    this.http.post<IResponse>('http://localhost:9090/v1/oidc/nonce', {credential, nonce: this.nonce()}).subscribe({
+      next: data => {
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('token_type', 'Bearer');
+        localStorage.setItem('expries_in', data.access_token);
+        localStorage.setItem('nonce', data.nonce);
+      }
+    });
   }
 
 }
