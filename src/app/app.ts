@@ -23,7 +23,7 @@ export class App implements OnInit {
   private readonly nonce = signal<string | undefined>('');
 
   ngOnInit() {
-    this.http.get('http://localhost:9090/v1/oidc/nonce').subscribe({
+    this.http.get('http://localhost:9090/v1/oidc/nonce', {responseType: 'text'}).subscribe({
       next: data => {
         this.nonce.set(String(data));
         this.initGoogleOauth(String(data));
