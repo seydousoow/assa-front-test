@@ -23,7 +23,7 @@ export class App implements OnInit {
   private readonly nonce = signal<string | undefined>('');
 
   ngOnInit() {
-    this.http.get('http://localhost:9090/v1/oidc/nonce', {responseType: 'text'}).subscribe({
+    this.http.get('https://auth-api.srv-airsenegal.dicortex.com/v1/oidc/nonce', {responseType: 'text'}).subscribe({
       next: data => {
         this.nonce.set(String(data));
         this.initGoogleOauth(String(data));
@@ -33,7 +33,7 @@ export class App implements OnInit {
   }
 
   logout() {
-    this.http.post<void>('http://localhost:9090/v1/auth/logout', {nonce: localStorage.getItem('nonce') ?? ''}).subscribe();
+    this.http.post<void>('https://auth-api.srv-airsenegal.dicortex.com/v1/auth/logout', {nonce: localStorage.getItem('nonce') ?? ''}).subscribe();
     ['access_token', 'token_type', 'expires_in', 'nonce'].forEach.call(localStorage, key => localStorage.removeItem(key));
   }
 
@@ -47,7 +47,7 @@ export class App implements OnInit {
       itp_support: false,
       login_uri: 'https://assa-front.dicortex.com',
       callback: ({credential}: CredentialResponse) => {
-        this.http.post<IResponse>('http://localhost:9090/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
+        this.http.post<IResponse>('hhttps://auth-api.srv-airsenegal.dicortex.com/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
           next: data => {
             localStorage.setItem('access_token', data.accessToken);
             localStorage.setItem('token_type', 'Bearer');
