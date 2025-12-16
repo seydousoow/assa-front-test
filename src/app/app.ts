@@ -47,7 +47,7 @@ export class App implements OnInit {
       itp_support: false,
       login_uri: 'https://assa-front.dicortex.com',
       callback: ({credential}: CredentialResponse) => {
-        this.http.post<IResponse>('hhttps://auth-api.srv-airsenegal.dicortex.com/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
+        this.http.post<IResponse>('https://auth-api.srv-airsenegal.dicortex.com/v1/oidc/google', {credential, nonce: this.nonce()}).subscribe({
           next: data => {
             localStorage.setItem('access_token', data.accessToken);
             localStorage.setItem('token_type', 'Bearer');
