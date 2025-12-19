@@ -1,21 +1,21 @@
-<!--<div id="g_id_onload"
-       data-client_id="378670455235-j7n8bmrbre29kk6vqjk5bmkng461t237.apps.googleusercontent.com"
-       data-context="signin"
-       data-ux_mode="popup"
-       data-callback="initGoogleOauth"
-       data-nonce="{{nonce()}}"
-       data-auto_select="true"
-       data-itp_support="false">
-</div>
+@if (response(); as data) {
+  <div id="content">
+    <p>Token: {{ data.access_token }}</p>
+    <p>Nonce: {{ data.nonce }}</p>
+    <p>Expires in {{ data.expires_in }} minutes</p>
 
-<div class="g_id_signin"
-     data-type="icon"
-     data-shape="square"
-     data-theme="outline"
-     data-text="signin"
-     data-size="large">
-</div>-->
+    <div>
+      <p>Current User:</p>
+      {{ currentUser() | json }}
+    </div>
+  </div>
+
+  <button (click)="logout()">logout</button>
+} @else {
+  <div>
+    <p>No token yet: Please login</p>
+  </div>
+}
 
 <div #google></div>
 
-<button (click)="logout()">logout</button>
