@@ -1,0 +1,10 @@
+<div class="grid grid-cols-1 gap-1 text-md mx-2 ">
+  @if (isLoggedIn) {
+  <div class="w-full h-full justify-between items-center">
+    <p>Current User:</p>
+    {{ currentUser() | json }}
+  </div>
+  } @else {
+    <div class="w-full h-full justify-between items-center">You are not connect yet</div>
+  }
+</div>

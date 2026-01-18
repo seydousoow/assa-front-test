@@ -1,21 +1,15 @@
-@if (response(); as data) {
-  <div id="content">
-    <p>Token: {{ data.access_token }}</p>
-    <p>Nonce: {{ data.nonce }}</p>
-    <p>Expires in {{ data.expires_in }} minutes</p>
-
-    <div>
-      <p>Current User:</p>
-      {{ currentUser() | json }}
-    </div>
+<main class="w-full h-full">
+  <div class="w-full flex justify-center items-center bg-blue-950 text-white gap-x-3 py-2">
+    <a class="px-6 py-1.5 rounded-2xl border w-40 text-center" routerLink="/auth" routerLinkActive="bg-orange-600 !cursor-default">Auth</a>
+    <a class="px-6 py-1.5 rounded-2xl border w-40 text-center" routerLink="/about" routerLinkActive="bg-orange-600 !cursor-default">About us</a>
+    @if (!isLoggedIn) {
+      <a (click)="login()" class="px-6 py-1.5 rounded-2xl border w-40 text-center cursor-pointer">Login</a>
+    } @else {
+      <a (click)="logout()" class="px-6 py-1.5 rounded-2xl border w-40 text-center cursor-pointer">Logout</a>
+    }
   </div>
 
-  <button (click)="logout()">logout</button>
-} @else {
-  <div>
-    <p>No token yet: Please login</p>
+  <div class="w-full h-full scroll-auto">
+    <router-outlet/>
   </div>
-}
-
-<div #google></div>
-
+</main>
